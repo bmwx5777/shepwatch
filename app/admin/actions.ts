@@ -33,6 +33,61 @@ export async function createBrand(formData: FormData) {
   revalidatePath("/brand");
 }
 
+export async function updateBrand(formData: FormData) {
+  const supabase = await createClient();
+
+  const id = String(formData.get("id") ?? "").trim();
+  const name = String(formData.get("name") ?? "").trim();
+  const slug = String(formData.get("slug") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim();
+  const logoUrl = String(formData.get("logo_url") ?? "").trim();
+  const heroImageUrl = String(formData.get("hero_image_url") ?? "").trim();
+
+  if (!id || !name || !slug) {
+    throw new Error("Id, name and slug are required.");
+  }
+
+  const { error } = await supabase
+    .from("brands")
+    .update({
+      name,
+      slug,
+      description: description || null,
+      logo_url: logoUrl || null,
+      hero_image_url: heroImageUrl || null,
+    })
+    .eq("id", id);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/admin/brands");
+  revalidatePath(`/admin/brands/${id}/edit`);
+  revalidatePath("/brand");
+
+  redirect("/admin/brands");
+}
+
+export async function deleteBrand(formData: FormData) {
+  const supabase = await createClient();
+
+  const id = String(formData.get("id") ?? "").trim();
+
+  if (!id) {
+    throw new Error("Brand id is required.");
+  }
+
+  const { error } = await supabase.from("brands").delete().eq("id", id);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/admin/brands");
+  revalidatePath("/brand");
+}
+
 export async function createWatch(formData: FormData) {
   const supabase = await createClient();
 
