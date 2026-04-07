@@ -1,0 +1,62 @@
+import Link from "next/link";
+import AdminShell from "@/components/admin/AdminShell";
+import AdminTopbar from "@/components/admin/AdminTopbar";
+import { createClient } from "@/lib/supabase/server";
+
+export default async function AdminWatchesPage() {
+  const supabase = await createClient();
+
+  const { data: watches, error } = await supabase
+    .from("watches")
+    .select(`
+      *,
+      brands (
+        name
+      )
+    `)
+    .order("created_at", { ascending: false });
+
+  return (
+    <AdminShell>
+      <AdminTopbar
+        title="Watches"
+        description="Manage your listings, review database entries, and add new watches to the marketplace."
+      />
+
+      <div className="mt-8 rounded-[1.8rem] border border-[#e7ddd1] bg-white/90 p-6 shadow-[0_10px_28px_rgba(0,0,0,0.04)]">
+        <div className="mb-6 flex items-center justify-between gap-4">
+          <h2 className="text-xl font-semibold text-[#2f2925]">All watches</h2>
+          <Link
+            href="/admin/watches/new"
+            className="rounded-[1rem] border border-[#d8cec0] bg-[#e9dfd2] px-5 py-3 text-sm font-medium text-[#2f2925] transition hover:bg-[#e1d4c3]"
+          >
+            Add watch
+          </Link>
+        </div>
+
+        {error ? (
+          <p className="text-red-600">{error.message}</p>
+        ) : watches && watches.length > 0 ? (
+          <div className="space-y-3">
+            {watches.map((watch) => (
+              <div
+                key={watch.id}
+                className="rounded-[1.1rem] border border-[#ece3d8] bg-[#fcfaf7] px-4 py-4"
+              >
+                <p className="text-lg font-semibold text-[#2f2925]">
+                  {watch.brands?.name ?? "Unknown"} {watch.model}
+                </p>
+                <p className="mt-1 text-sm text-[#655d56]">/{watch.slug}</p>
+                <p className="mt-2 text-sm text-[#655d56]">
+                  €{watch.price_eur} · {watch.country ?? "—"} · {watch.condition ?? "—"}
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-[#655d56]">No watches yet.</p>
+        )}
+      </div>
+    </AdminShell>
+  );
+}
