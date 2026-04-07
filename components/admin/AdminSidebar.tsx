@@ -2,7 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Gem, Watch, Plus, ChevronRight } from "lucide-react";
+import {
+  LayoutDashboard,
+  Gem,
+  Watch,
+  Plus,
+  ChevronRight,
+  LogOut,
+} from "lucide-react";
+import { adminLogout } from "@/app/admin/login/actions";
 
 const items = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -66,6 +74,18 @@ export default function AdminSidebar() {
           );
         })}
       </nav>
+
+      <form action={adminLogout} className="mt-8">
+        <button
+          type="submit"
+          className="flex w-full items-center gap-3 rounded-[1.15rem] px-4 py-3.5 text-sm font-medium text-[#5c554e] transition hover:bg-[#f8f5f0] hover:text-[#2f2925]"
+        >
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f3eee7]">
+            <LogOut className="h-4 w-4" />
+          </span>
+          Logout
+        </button>
+      </form>
     </aside>
   );
 }
