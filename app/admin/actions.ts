@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 export async function createBrand(formData: FormData) {
@@ -84,6 +85,97 @@ export async function createWatch(formData: FormData) {
     is_new: isNew,
     is_top_deal: isTopDeal,
   });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/admin/watches");
+  revalidatePath("/watches");
+  revalidatePath("/new-arrivals");
+  revalidatePath("/top-deals");
+}
+
+export async function updateWatch(formData: FormData) {
+  const supabase = await createClient();
+
+  const id = String(formData.get("id") ?? "").trim();
+  const brandId = String(formData.get("brand_id") ?? "").trim();
+  const slug = String(formData.get("slug") ?? "").trim();
+  const model = String(formData.get("model") ?? "").trim();
+  const shortDescription = String(formData.get("short_description") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim();
+  const priceEur = Number(formData.get("price_eur") ?? 0);
+  const imageUrl = String(formData.get("image_url") ?? "").trim();
+  const badge = String(formData.get("badge") ?? "").trim();
+  const country = String(formData.get("country") ?? "").trim();
+  const location = String(formData.get("location") ?? "").trim();
+  const shipping = String(formData.get("shipping") ?? "").trim();
+  const condition = String(formData.get("condition") ?? "").trim();
+  const year = String(formData.get("year") ?? "").trim();
+  const scope = String(formData.get("scope") ?? "").trim();
+  const referenceNumber = String(formData.get("reference_number") ?? "").trim();
+  const caseMaterial = String(formData.get("case_material") ?? "").trim();
+  const movement = String(formData.get("movement") ?? "").trim();
+  const diameter = String(formData.get("diameter") ?? "").trim();
+  const dialColor = String(formData.get("dial_color") ?? "").trim();
+  const isNew = formData.get("is_new") === "on";
+  const isTopDeal = formData.get("is_top_deal") === "on";
+
+  if (!id || !brandId || !slug || !model || !priceEur) {
+    throw new Error("Id, brand, slug, model and price are required.");
+  }
+
+  const { error } = await supabase
+    .from("watches")
+    .update({
+      brand_id: brandId,
+      slug,
+      model,
+      short_description: shortDescription || null,
+      description: description || null,
+      price_eur: priceEur,
+      image_url: imageUrl || null,
+      badge: badge || null,
+      country: country || null,
+      location: location || null,
+      shipping: shipping || null,
+      condition: condition || null,
+      year: year || null,
+      scope: scope || null,
+      reference_number: referenceNumber || null,
+      case_material: caseMaterial || null,
+      movement: movement || null,
+      diameter: diameter || null,
+      dial_color: dialColor || null,
+      is_new: isNew,
+      is_top_deal: isTopDeal,
+    })
+    .eq("id", id);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/admin/watches");
+  revalidatePath(`/admin/watches/${id}/edit`);
+  revalidatePath("/watches");
+  revalidatePath("/new-arrivals");
+  revalidatePath("/top-deals");
+
+  redirect("/admin/watches");
+}
+
+export async function deleteWatch(formData: FormData) {
+  const supabase = await createClient();
+
+  const id = String(formData.get("id") ?? "").trim();
+
+  if (!id) {
+    throw new Error("Watch id is required.");
+  }
+
+  const { error } = await supabase.from("watches").delete().eq("id", id);
 
   if (error) {
     throw new Error(error.message);
